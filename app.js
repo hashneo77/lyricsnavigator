@@ -80,6 +80,21 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function fuzzyMatch(text, word) {
+    let tIndex = 0;
+    let wIndex = 0;
+
+    while (tIndex < text.length && wIndex < word.length) {
+        if (text[tIndex] === word[wIndex]) {
+            wIndex++;
+        }
+        tIndex++;
+    }
+
+    return wIndex === word.length;
+}
+
+
 // Load song in iframe
 window.loadSong = function(url, songId) {
     const iframe = document.getElementById('songFrame');
@@ -104,16 +119,49 @@ window.loadSong = function(url, songId) {
 }
 
 // Search songs
-window.searchSongs = function() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    
-    const filteredSongs = allSongs.filter(song => 
-        song.title.toLowerCase().includes(searchTerm) || 
-        song.artist.toLowerCase().includes(searchTerm)
-    );
-    
+window.searchSongs = function () {
+    const searchTerm = document.getElementById('searchInput').value
+        .toLowerCase()
+        .trim();
+
+    if (!searchTerm) {
+        displaySongs(allSongs);
+        return;
+    }
+
+    const searchWords = searchTerm.split(/\s+/);
+
+    const scoredSongs = allSongs.map(song => {
+        let score = 0;
+
+        const title = song.title.toLowerCase();
+        const artist = song.artist.toLowerCase();
+
+        searchWords.forEach(word => {
+
+            // Exact word match (highest priority)
+            if (title.includes(word)) score += 5;
+            if (artist.includes(word)) score += 3;
+
+            // Starts with match
+            if (title.startsWith(word)) score += 4;
+            if (artist.startsWith(word)) score += 2;
+
+            // Fuzzy match (handles small typos)
+            if (fuzzyMatch(title, word)) score += 2;
+            if (fuzzyMatch(artist, word)) score += 1;
+        });
+
+        return { ...song, score };
+    });
+
+    const filteredSongs = scoredSongs
+        .filter(song => song.score > 0)
+        .sort((a, b) => b.score - a.score);
+
     displaySongs(filteredSongs);
-}
+};
+
 
 window.toggleFullscreen = function () {
     const container = document.querySelector('.iframe-container');
