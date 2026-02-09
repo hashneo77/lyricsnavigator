@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Session App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <header>
+        <h1>🎵 Song Library</h1>
+        <div class="session-controls">
+            <button class="btn btn-primary" onclick="createSession()">
+                <span class="icon">➕</span> Create Session
+            </button>
+            <div class="join-group">
+                <input type="text" id="sessionInput" placeholder="Enter session code" maxlength="6">
+                <button class="btn btn-secondary" onclick="joinSession()">
+                    <span class="icon">🔗</span> Join
+                </button>
+            </div>
+        </div>
+        <div id="sessionStatus" class="session-status"></div>
+    </header>
+
+    <div class="app-layout">
+        <!-- Sidebar with Song List -->
+        <aside class="sidebar">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="🔍 Search songs..." onkeyup="searchSongs()">
+            </div>
+
+            <div class="song-list" id="songList">
+                <div class="loading">Loading songs...</div>
+            </div>
+
+            <!-- Admin Add Song Button -->
+            <button class="btn btn-add" onclick="showAddSongModal()">+ Add New Song</button>
+        </aside>
+
+        <!-- Main Content - Iframe Viewer -->
+        <main class="main-content">
+            <div class="iframe-container">
+                <button id="fullscreenBtn" class="fullscreen-btn" onclick="toggleFullscreen()">
+                    ⛶ Fullscreen
+                </button>
+                <div id="placeholder" class="placeholder">
+                    <div class="placeholder-content">
+                        <span class="placeholder-icon">🎼</span>
+                        <h2>Select a song to begin</h2>
+                        <p>Choose from the library or search for your favorite</p>
+                    </div>
+                </div>
+                <iframe id="songFrame"></iframe>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Add Song Modal -->
+<div id="addSongModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeAddSongModal()">&times;</span>
+        <h2>Add New Song</h2>
+        <form onsubmit="addNewSong(event)">
+            <div class="form-group">
+                <label for="songTitle">Song Title:</label>
+                <input type="text" id="songTitle" required>
+            </div>
+            <div class="form-group">
+                <label for="songArtist">Artist:</label>
+                <input type="text" id="songArtist" required>
+            </div>
+            <div class="form-group">
+                <label for="songUrl">Lyrics URL:</label>
+                <input type="url" id="songUrl" required placeholder="https://...">
+            </div>
+            <button type="submit" class="btn btn-primary">Add Song</button>
+        </form>
+    </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module" src="app.js"></script>
+
+</body>
+</html>
