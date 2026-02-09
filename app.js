@@ -94,6 +94,7 @@ function fuzzyMatch(text, word) {
     return wIndex === word.length;
 }
 
+//New comment
 
 // Load song in iframe
 window.loadSong = function(url, songId) {
