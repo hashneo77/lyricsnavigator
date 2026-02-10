@@ -22,40 +22,88 @@ let allSongs = [];
 let currentSessionCode = null;
 let currentSongId = null;
 let favoriteSongs = new Set();
+let userId = null;
 
 // Load songs from Firebase on page load
 window.addEventListener('DOMContentLoaded', () => {
-    loadFavoritesFromLocalStorage();
+    initializeUser();
     loadSongsFromFirebase();
     checkExistingSession();
 });
 
-// Load favorites from localStorage
-function loadFavoritesFromLocalStorage() {
-    const savedFavorites = localStorage.getItem('favoriteSongs');
-    if (savedFavorites) {
-        favoriteSongs = new Set(JSON.parse(savedFavorites));
+// Initialize or retrieve user ID
+function initializeUser() {
+    userId = localStorage.getItem('userId');
+    if (!userId) {
+        // Generate a unique user ID
+        userId = 'user_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+        localStorage.setItem('userId', userId);
     }
+    
+    // Load favorites from Firebase
+    loadFavoritesFromFirebase();
 }
 
-// Save favorites to localStorage
-function saveFavoritesToLocalStorage() {
-    localStorage.setItem('favoriteSongs', JSON.stringify([...favoriteSongs]));
+// Load favorites from Firebase
+function loadFavoritesFromFirebase() {
+    const favoritesRef = ref(database, `favorites/${userId}`);
+    
+    onValue(favoritesRef, (snapshot) => {
+        const data = snapshot.val();
+        favoriteSongs = new Set();
+        
+        if (data) {
+            Object.keys(data).forEach(songId => {
+                if (data[songId] === true) {
+                    favoriteSongs.add(songId);
+                }
+            });
+        }
+        
+        // Re-sort and display songs when favorites load
+        if (allSongs.length > 0) {
+            allSongs.sort((a, b) => {
+                const aIsFav = favoriteSongs.has(a.id);
+                const bIsFav = favoriteSongs.has(b.id);
+                
+                if (aIsFav && !bIsFav) return -1;
+                if (!aIsFav && bIsFav) return 1;
+                
+                return a.title.localeCompare(b.title);
+            });
+            
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            if (searchTerm) {
+                searchSongs();
+            } else {
+                displaySongs(allSongs);
+            }
+        }
+    });
+}
+
+// Save favorite to Firebase
+function saveFavoriteToFirebase(songId, isFavorite) {
+    const favoriteRef = ref(database, `favorites/${userId}/${songId}`);
+    set(favoriteRef, isFavorite);
 }
 
 // Toggle favorite status
 window.toggleFavorite = function(event, songId) {
     event.stopPropagation(); // Prevent triggering song load
     
-    if (favoriteSongs.has(songId)) {
-        favoriteSongs.delete(songId);
-    } else {
+    const isFavorite = !favoriteSongs.has(songId);
+    
+    if (isFavorite) {
         favoriteSongs.add(songId);
+    } else {
+        favoriteSongs.delete(songId);
     }
     
-    saveFavoritesToLocalStorage();
+    // Save to Firebase
+    saveFavoriteToFirebase(songId, isFavorite);
     
-    // Update the display
+    // Update the display immediately (Firebase listener will also update)
     const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
     if (searchTerm) {
         searchSongs();
