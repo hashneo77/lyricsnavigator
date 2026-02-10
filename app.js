@@ -21,12 +21,48 @@ const database = getDatabase(app);
 let allSongs = [];
 let currentSessionCode = null;
 let currentSongId = null;
+let favoriteSongs = new Set();
 
 // Load songs from Firebase on page load
 window.addEventListener('DOMContentLoaded', () => {
+    loadFavoritesFromLocalStorage();
     loadSongsFromFirebase();
     checkExistingSession();
 });
+
+// Load favorites from localStorage
+function loadFavoritesFromLocalStorage() {
+    const savedFavorites = localStorage.getItem('favoriteSongs');
+    if (savedFavorites) {
+        favoriteSongs = new Set(JSON.parse(savedFavorites));
+    }
+}
+
+// Save favorites to localStorage
+function saveFavoritesToLocalStorage() {
+    localStorage.setItem('favoriteSongs', JSON.stringify([...favoriteSongs]));
+}
+
+// Toggle favorite status
+window.toggleFavorite = function(event, songId) {
+    event.stopPropagation(); // Prevent triggering song load
+    
+    if (favoriteSongs.has(songId)) {
+        favoriteSongs.delete(songId);
+    } else {
+        favoriteSongs.add(songId);
+    }
+    
+    saveFavoritesToLocalStorage();
+    
+    // Update the display
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    if (searchTerm) {
+        searchSongs();
+    } else {
+        displaySongs(allSongs);
+    }
+}
 
 // Load songs from Firebase
 function loadSongsFromFirebase() {
@@ -45,8 +81,16 @@ function loadSongsFromFirebase() {
             });
         }
         
-        // Sort songs alphabetically by title
-        allSongs.sort((a, b) => a.title.localeCompare(b.title));
+        // Sort songs: favorites first, then alphabetically by title
+        allSongs.sort((a, b) => {
+            const aIsFav = favoriteSongs.has(a.id);
+            const bIsFav = favoriteSongs.has(b.id);
+            
+            if (aIsFav && !bIsFav) return -1;
+            if (!aIsFav && bIsFav) return 1;
+            
+            return a.title.localeCompare(b.title);
+        });
         
         displaySongs(allSongs);
     }, (error) => {
@@ -65,12 +109,26 @@ function displaySongs(songs) {
         return;
     }
     
-    songList.innerHTML = songs.map(song => `
-        <div class="song-item" onclick="loadSong('${song.url}', '${song.id}')" data-id="${song.id}">
-            <div class="song-title">${escapeHtml(song.title)}</div>
-            <div class="song-artist">${escapeHtml(song.artist)}</div>
-        </div>
-    `).join('');
+    songList.innerHTML = songs.map(song => {
+        const isFavorite = favoriteSongs.has(song.id);
+        const starIcon = isFavorite ? '⭐' : '☆';
+        
+        return `
+            <div class="song-item" onclick="loadSong('${song.url}', '${song.id}')" data-id="${song.id}">
+                <div class="song-content">
+                    <div>
+                        <div class="song-title">${escapeHtml(song.title)}</div>
+                        <div class="song-artist">${escapeHtml(song.artist)}</div>
+                    </div>
+                    <button class="favorite-btn ${isFavorite ? 'active' : ''}" 
+                            onclick="toggleFavorite(event, '${song.id}')"
+                            title="${isFavorite ? 'Remove from favorites' : 'Add to favorites'}">
+                        ${starIcon}
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 // Escape HTML to prevent XSS
@@ -94,8 +152,6 @@ function fuzzyMatch(text, word) {
     return wIndex === word.length;
 }
 
-//New comment
-//comment
 // Load song in iframe
 window.loadSong = function(url, songId) {
     const iframe = document.getElementById('songFrame');
@@ -139,7 +195,6 @@ window.searchSongs = function () {
         const artist = song.artist.toLowerCase();
 
         searchWords.forEach(word => {
-
             // Exact word match (highest priority)
             if (title.includes(word)) score += 5;
             if (artist.includes(word)) score += 3;
@@ -153,12 +208,26 @@ window.searchSongs = function () {
             if (fuzzyMatch(artist, word)) score += 1;
         });
 
+        // Boost score for favorites
+        if (favoriteSongs.has(song.id)) {
+            score += 10;
+        }
+
         return { ...song, score };
     });
 
     const filteredSongs = scoredSongs
         .filter(song => song.score > 0)
-        .sort((a, b) => b.score - a.score);
+        .sort((a, b) => {
+            // If scores are equal, prioritize favorites
+            if (b.score === a.score) {
+                const aIsFav = favoriteSongs.has(a.id);
+                const bIsFav = favoriteSongs.has(b.id);
+                if (aIsFav && !bIsFav) return -1;
+                if (!aIsFav && bIsFav) return 1;
+            }
+            return b.score - a.score;
+        });
 
     displaySongs(filteredSongs);
 };
