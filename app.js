@@ -22,31 +22,17 @@ let allSongs = [];
 let currentSessionCode = null;
 let currentSongId = null;
 let favoriteSongs = new Set();
-let userId = null;
 
 // Load songs from Firebase on page load
 window.addEventListener('DOMContentLoaded', () => {
-    initializeUser();
+    loadFavoritesFromFirebase();
     loadSongsFromFirebase();
     checkExistingSession();
 });
 
-// Initialize or retrieve user ID
-function initializeUser() {
-    userId = localStorage.getItem('userId');
-    if (!userId) {
-        // Generate a unique user ID
-        userId = 'user_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
-        localStorage.setItem('userId', userId);
-    }
-    
-    // Load favorites from Firebase
-    loadFavoritesFromFirebase();
-}
-
-// Load favorites from Firebase
+// Load favorites from Firebase (shared across all users)
 function loadFavoritesFromFirebase() {
-    const favoritesRef = ref(database, `favorites/${userId}`);
+    const favoritesRef = ref(database, 'sharedFavorites');
     
     onValue(favoritesRef, (snapshot) => {
         const data = snapshot.val();
@@ -82,9 +68,9 @@ function loadFavoritesFromFirebase() {
     });
 }
 
-// Save favorite to Firebase
+// Save favorite to Firebase (shared)
 function saveFavoriteToFirebase(songId, isFavorite) {
-    const favoriteRef = ref(database, `favorites/${userId}/${songId}`);
+    const favoriteRef = ref(database, `sharedFavorites/${songId}`);
     set(favoriteRef, isFavorite);
 }
 
@@ -100,7 +86,7 @@ window.toggleFavorite = function(event, songId) {
         favoriteSongs.delete(songId);
     }
     
-    // Save to Firebase
+    // Save to Firebase (shared across all users)
     saveFavoriteToFirebase(songId, isFavorite);
     
     // Update the display immediately (Firebase listener will also update)
