@@ -18,7 +18,7 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
 // App version
-const APP_VERSION = '1.0.3';
+const APP_VERSION = '1.0.4';
 
 // Global variables
 let allSongs = [];
@@ -528,11 +528,9 @@ function endSession() {
         sessionTimerInterval = null;
     }
 
-    // Delete session from Firebase if it exists
-    if (currentSessionCode) {
-        const sessionRef = ref(database, `sessions/${currentSessionCode}`);
-        remove(sessionRef);
-    }
+    // NOTE: We don't delete the session from Firebase here
+    // The session should remain active so others can join/rejoin
+    // It will auto-delete after 6 hours via scheduleSessionDeletion()
 
     // Clear local storage
     localStorage.removeItem('sessionCode');
@@ -548,7 +546,7 @@ function endSession() {
     const endBtn = document.getElementById('endSessionBtn');
 
     if (codeText) {
-        codeText.textContent = 'Session ended';
+        codeText.textContent = 'Left session';
     }
     if (timerSpan) {
         timerSpan.textContent = '';

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2025-02-11
+
+### Fixed
+- Session handling: Users can now rejoin sessions after leaving
+- Sessions are no longer deleted when a user leaves
+- Sessions only auto-delete after 6-hour expiration
+
+### Changed
+- "End Session" button renamed to "Leave Session"
+- Button icon changed from ✖ to 👋
+- Status message changed from "Session ended" to "Left session"
+
 ## [1.0.3] - 2025-02-11
 
 ### Changed
