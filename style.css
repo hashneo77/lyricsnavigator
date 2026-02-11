@@ -243,7 +243,8 @@ input[type="url"]:focus {
 .app-layout {
     display: flex;
     height: calc(100vh - 250px);
-    min-height: 600px;
+    min-height: 700px;
+    max-height: calc(100vh - 200px);
 }
 
 /* Sidebar */
@@ -502,6 +503,9 @@ input[type="url"]:focus {
     flex: 1;
     position: relative;
     min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 #placeholder {
@@ -564,10 +568,16 @@ iframe {
     border: none;
     display: none;
     animation: fadeIn 0.4s ease-out;
+    overflow: auto;
 }
 
 iframe.active {
     display: block;
+}
+
+/* Ensure iframe container fills available space properly */
+.main-content iframe {
+    min-height: 600px;
 }
 
 /* Modal Styles */
