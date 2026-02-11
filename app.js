@@ -26,6 +26,42 @@ let currentSessionCode = null;
 let currentSongId = null;
 let favoriteSongs = new Set();
 
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+                console.log('ServiceWorker registration successful:', registration.scope);
+
+                // Check for updates
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            // New service worker available, show update notification
+                            if (confirm('New version available! Reload to update?')) {
+                                newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                window.location.reload();
+                            }
+                        }
+                    });
+                });
+            })
+            .catch((error) => {
+                console.log('ServiceWorker registration failed:', error);
+            });
+    });
+
+    // Reload page when new service worker takes control
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+        }
+    });
+}
+
 // Load songs from Firebase on page load
 window.addEventListener('DOMContentLoaded', () => {
     // Set version in UI
@@ -37,6 +73,17 @@ window.addEventListener('DOMContentLoaded', () => {
     loadFavoritesFromFirebase();
     loadSongsFromFirebase();
     checkExistingSession();
+
+    // Show install prompt for PWA
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent the mini-infobar from appearing on mobile
+        e.preventDefault();
+        // Stash the event so it can be triggered later
+        deferredPrompt = e;
+        // Optionally, show your own install button here
+        console.log('PWA install prompt available');
+    });
 });
 
 // Load favorites from Firebase (shared across all users)

@@ -15,6 +15,11 @@ Thumbs.db
 # Node modules (if you add any)
 node_modules/
 nul
+
 # Environment files
 .env
 .env.local
+
+# Icons (optional - uncomment if you want to keep icons out of git)
+# icons/
+# screenshots/

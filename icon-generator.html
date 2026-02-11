@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Icon Generator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .preview {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+        canvas {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        input, select {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            margin: 5px;
+        }
+        .controls {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .note {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎼 Song Library Icon Generator</h1>
+
+        <div class="note">
+            <strong>Quick Tip:</strong> This generates simple placeholder icons. For production, use professional tools like
+            <a href="https://www.pwabuilder.com/imageGenerator" target="_blank">PWA Builder</a> or
+            <a href="https://realfavicongenerator.net/" target="_blank">RealFaviconGenerator</a>.
+        </div>
+
+        <div class="controls">
+            <label>Icon Text/Emoji:
+                <input type="text" id="iconText" value="🎼" maxlength="2">
+            </label>
+            <label>Background:
+                <input type="color" id="bgColor" value="#667eea">
+            </label>
+            <label>Text Color:
+                <input type="color" id="textColor" value="#ffffff">
+            </label>
+            <button onclick="generateIcons()">Generate Icons</button>
+        </div>
+
+        <div class="preview" id="preview"></div>
+
+        <div style="margin-top: 20px;">
+            <button onclick="downloadAll()">Download All Icons</button>
+        </div>
+
+        <div class="note" style="margin-top: 30px;">
+            <h3>Next Steps:</h3>
+            <ol>
+                <li>Click "Generate Icons" to preview</li>
+                <li>Click "Download All Icons" to save</li>
+                <li>Create an <code>icons</code> folder in your project</li>
+                <li>Place all downloaded icons in the <code>icons</code> folder</li>
+                <li>Deploy your app with HTTPS</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+
+        function generateIcons() {
+            const preview = document.getElementById('preview');
+            preview.innerHTML = '';
+
+            const text = document.getElementById('iconText').value || '🎼';
+            const bgColor = document.getElementById('bgColor').value;
+            const textColor = document.getElementById('textColor').value;
+
+            sizes.forEach(size => {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                canvas.id = `icon-${size}`;
+
+                const ctx = canvas.getContext('2d');
+
+                // Draw gradient background
+                const gradient = ctx.createLinearGradient(0, 0, size, size);
+                gradient.addColorStop(0, bgColor);
+                gradient.addColorStop(1, '#764ba2');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, size, size);
+
+                // Draw text/emoji
+                ctx.fillStyle = textColor;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.font = `${size * 0.6}px Arial`;
+                ctx.fillText(text, size / 2, size / 2);
+
+                const wrapper = document.createElement('div');
+                wrapper.style.textAlign = 'center';
+                wrapper.appendChild(canvas);
+                const label = document.createElement('div');
+                label.textContent = `${size}x${size}`;
+                label.style.marginTop = '5px';
+                label.style.fontSize = '12px';
+                wrapper.appendChild(label);
+
+                preview.appendChild(wrapper);
+            });
+        }
+
+        function downloadAll() {
+            sizes.forEach(size => {
+                const canvas = document.getElementById(`icon-${size}`);
+                if (canvas) {
+                    canvas.toBlob(blob => {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `icon-${size}x${size}.png`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                    });
+                }
+            });
+            alert('Downloading all icons! Check your downloads folder.');
+        }
+
+        // Generate default icons on load
+        window.onload = generateIcons;
+    </script>
+</body>
+</html>
