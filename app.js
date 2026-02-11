@@ -18,7 +18,7 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
 // App version
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.2';
 
 // Global variables
 let allSongs = [];
