@@ -26,6 +26,7 @@ let currentSessionCode = null;
 let currentSongId = null;
 let favoriteSongs = new Set();
 let sessionTimerInterval = null;
+let searchDebounceTimer = null;
 const SESSION_DURATION = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 
 // Register Service Worker for PWA
@@ -267,8 +268,21 @@ window.loadSong = function(url, songId) {
     }
 }
 
-// Search songs
+// Debounced search function
 window.searchSongs = function () {
+    // Clear previous timer
+    if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+    }
+
+    // Set new timer - search will run 300ms after user stops typing
+    searchDebounceTimer = setTimeout(() => {
+        performSearch();
+    }, 300);
+}
+
+// Actual search logic
+function performSearch() {
     const searchTerm = document.getElementById('searchInput').value
         .toLowerCase()
         .trim();
@@ -322,7 +336,7 @@ window.searchSongs = function () {
         });
 
     displaySongs(filteredSongs);
-};
+}
 
 
 window.toggleFullscreen = function () {
