@@ -233,10 +233,10 @@ input[type="url"]:focus {
 }
 
 #sessionInput {
-    width: 160px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    width: 130px;
+    letter-spacing: 2px;
     font-weight: 600;
+    text-align: center;
 }
 
 /* App Layout */

@@ -339,8 +339,8 @@ window.toggleFullscreen = function () {
 // ===== Session Management =====
 
 window.createSession = function() {
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    
+    const code = Math.floor(1000 + Math.random() * 9000).toString();
+
     currentSessionCode = code;
     localStorage.setItem('sessionCode', code);
     
@@ -358,13 +358,18 @@ window.createSession = function() {
 }
 
 window.joinSession = function() {
-    const code = document.getElementById('sessionInput').value.toUpperCase();
-    
+    const code = document.getElementById('sessionInput').value.trim();
+
     if (!code) {
         alert('Please enter a session code');
         return;
     }
-    
+
+    if (!/^\d{4}$/.test(code)) {
+        alert('Please enter a valid 4-digit code');
+        return;
+    }
+
     currentSessionCode = code;
     localStorage.setItem('sessionCode', code);
     
