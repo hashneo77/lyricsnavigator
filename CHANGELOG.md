@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2025-02-11
+
+### Changed
+- Compact header layout with h1 and session controls on same line
+- Reduced button sizes and spacing for cleaner layout
+- Shortened button text ("Create" instead of "Create Session")
+- Shortened input placeholder for session code
+- Smaller h1 font size (2.2rem from 2.75rem)
+
+### Improved
+- More space-efficient header design
+- Better visual hierarchy in header
+- Responsive layout adjustments for tablets and mobile
+
+## [1.0.2] - 2025-02-11
+
+### Changed
+- Service worker caching strategy from cache-first to network-first for code files
+- This ensures users get the latest version without manually clearing cache
+
+### Fixed
+- Auto-update issue where users had to clear cache to see new features
+
+## [1.0.1] - 2025-02-11
+
+### Added
+- Progressive Web App (PWA) support
+- Web App Manifest for installation on iOS and Android
+- Service Worker for offline functionality
+- 4-digit numeric session codes (replaced 6-character alphanumeric)
+- 6-hour session expiration with automatic cleanup
+- Real-time countdown timer for active sessions
+- "End Session" button for manual session termination
+- Debounced search (300ms delay) for better performance
+
+### Changed
+- Session code format from alphanumeric to numeric only
+- Session input optimized for numeric keyboard on mobile
+
+### Fixed
+- Search lag when typing (implemented debouncing)
+
 ## [1.0.0] - 2025-01-XX
 
 ### Added

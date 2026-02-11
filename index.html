@@ -45,20 +45,22 @@
 <div class="container">
     <!-- Header -->
     <header>
-        <h1>Song Library</h1>
-        <div class="session-controls">
-            <button class="btn btn-primary" onclick="createSession()">
-                <span class="icon">➕</span> Create Session
-            </button>
-            <div class="join-group">
-                <input type="text" id="sessionInput" placeholder="Enter 4-digit code" maxlength="4" pattern="\d*" inputmode="numeric">
-                <button class="btn btn-secondary" onclick="joinSession()">
-                    <span class="icon">🔗</span> Join
+        <div class="header-top">
+            <h1>Song Library</h1>
+            <div class="session-controls">
+                <button class="btn btn-primary" onclick="createSession()">
+                    <span class="icon">➕</span> Create
+                </button>
+                <div class="join-group">
+                    <input type="text" id="sessionInput" placeholder="Code" maxlength="4" pattern="\d*" inputmode="numeric">
+                    <button class="btn btn-secondary" onclick="joinSession()">
+                        <span class="icon">🔗</span> Join
+                    </button>
+                </div>
+                <button class="btn btn-secondary" onclick="endSession()" style="display: none;" id="endSessionBtn">
+                    <span class="icon">✖</span> End
                 </button>
             </div>
-            <button class="btn btn-secondary" onclick="endSession()" style="display: none;" id="endSessionBtn">
-                <span class="icon">✖</span> End Session
-            </button>
         </div>
         <div id="sessionStatus" class="session-status">
             <span class="session-code-text"></span>

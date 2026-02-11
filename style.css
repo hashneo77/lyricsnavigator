@@ -59,9 +59,12 @@ body {
 header {
     background: var(--primary-gradient);
     color: var(--white);
-    padding: 36px 48px;
+    padding: 28px 48px;
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 header::before {
@@ -75,18 +78,26 @@ header::before {
     pointer-events: none;
 }
 
+.header-top {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
 header h1 {
-    font-size: 2.75rem;
-    margin-bottom: 24px;
+    font-size: 2.2rem;
+    margin: 0;
     text-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
     font-weight: 700;
     letter-spacing: -0.5px;
     position: relative;
+    flex-shrink: 0;
 }
 
 .session-controls {
     display: flex;
-    gap: 16px;
+    gap: 10px;
     align-items: center;
     flex-wrap: wrap;
     position: relative;
@@ -94,13 +105,22 @@ header h1 {
 
 .join-group {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     align-items: stretch;
 }
 
+/* Compact session control buttons */
+.session-controls .btn {
+    padding: 9px 18px;
+    font-size: 0.85rem;
+}
+
+.session-controls .icon {
+    font-size: 1rem;
+}
+
 .session-status {
-    margin-top: 20px;
-    padding: 14px 24px;
+    padding: 12px 20px;
     background: rgba(255, 255, 255, 0.15);
     border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: var(--border-radius);
@@ -109,7 +129,7 @@ header h1 {
     backdrop-filter: blur(10px);
     animation: slideInDown 0.4s ease-out;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .session-status.active {
@@ -246,10 +266,12 @@ input[type="url"]:focus {
 }
 
 #sessionInput {
-    width: 130px;
+    width: 110px;
     letter-spacing: 2px;
     font-weight: 600;
     text-align: center;
+    padding: 9px 12px;
+    font-size: 0.85rem;
 }
 
 /* App Layout */
@@ -718,25 +740,36 @@ iframe.active {
 
     /* Compact Header for Mobile */
     header {
-        padding: 20px 16px;
+        padding: 16px 12px;
+        gap: 12px;
+    }
+
+    .header-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
     }
 
     header h1 {
         font-size: 1.5rem;
-        margin-bottom: 16px;
     }
 
     .session-controls {
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
+        width: 100%;
+    }
+
+    .session-controls .btn {
+        padding: 10px 16px;
+        font-size: 0.85rem;
     }
 
     .session-status {
-        margin-top: 12px;
-        padding: 10px 16px;
+        padding: 10px 14px;
         font-size: 0.85rem;
-        gap: 6px;
+        gap: 5px;
     }
 
     .session-code-text {
@@ -881,12 +914,16 @@ iframe.active {
     }
 
     header {
-        padding: 28px 32px;
+        padding: 24px 32px;
     }
 
     header h1 {
-        font-size: 2.2rem;
-        margin-bottom: 20px;
+        font-size: 1.9rem;
+    }
+
+    .session-controls .btn {
+        padding: 8px 16px;
+        font-size: 0.8rem;
     }
 
     .sidebar {
