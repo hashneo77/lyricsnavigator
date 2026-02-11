@@ -1,4 +1,4 @@
-const CACHE_NAME = 'song-library-v1.0.0';
+const CACHE_NAME = 'song-library-v1.0.1';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -38,45 +38,65 @@ self.addEventListener('activate', (event) => {
   return self.clients.claim();
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - network-first for code files, cache-first for others
 self.addEventListener('fetch', (event) => {
   // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
+  const url = new URL(event.request.url);
 
-        // Clone the request
-        const fetchRequest = event.request.clone();
+  // Network-first strategy for HTML, CSS, and JS (always get latest)
+  const isCodeFile = url.pathname.endsWith('.html') ||
+                     url.pathname.endsWith('.css') ||
+                     url.pathname.endsWith('.js') ||
+                     url.pathname === '/' ||
+                     url.pathname.endsWith('.json');
 
-        return fetch(fetchRequest).then((response) => {
+  if (isCodeFile) {
+    // Network-first: Try network, fallback to cache
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
           // Check if valid response
-          if (!response || response.status !== 200 || response.type !== 'basic') {
+          if (response && response.status === 200) {
+            // Clone and cache the response
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Network failed, fallback to cache
+          return caches.match(event.request).then((cachedResponse) => {
+            return cachedResponse || caches.match('/index.html');
+          });
+        })
+    );
+  } else {
+    // Cache-first strategy for images and other assets
+    event.respondWith(
+      caches.match(event.request)
+        .then((response) => {
+          if (response) {
             return response;
           }
 
-          // Clone the response
-          const responseToCache = response.clone();
-
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
-
-          return response;
-        }).catch(() => {
-          // Return a custom offline page if available
-          return caches.match('/index.html');
-        });
-      })
-  );
+          return fetch(event.request).then((response) => {
+            if (response && response.status === 200) {
+              const responseToCache = response.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(event.request, responseToCache);
+              });
+            }
+            return response;
+          });
+        })
+    );
+  }
 });
 
 // Handle messages from the client
