@@ -25,6 +25,8 @@ let allSongs = [];
 let currentSessionCode = null;
 let currentSongId = null;
 let favoriteSongs = new Set();
+let sessionTimerInterval = null;
+const SESSION_DURATION = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 
 // Register Service Worker for PWA
 if ('serviceWorker' in navigator) {
@@ -340,19 +342,26 @@ window.toggleFullscreen = function () {
 
 window.createSession = function() {
     const code = Math.floor(1000 + Math.random() * 9000).toString();
+    const createdAt = Date.now();
 
     currentSessionCode = code;
     localStorage.setItem('sessionCode', code);
-    
-    // Create session in Firebase
+    localStorage.setItem('sessionCreatedAt', createdAt);
+
+    // Create session in Firebase with expiry time
     const sessionRef = ref(database, `sessions/${code}`);
     set(sessionRef, {
-        createdAt: Date.now(),
+        createdAt: createdAt,
+        expiresAt: createdAt + SESSION_DURATION,
         currentSong: null
     });
-    
+
     updateSessionStatus(`Session Created: ${code}`);
-    
+    startSessionTimer(createdAt);
+
+    // Schedule session deletion after 6 hours
+    scheduleSessionDeletion(code, SESSION_DURATION);
+
     // Listen for session changes
     listenToSession(code);
 }
@@ -370,29 +379,179 @@ window.joinSession = function() {
         return;
     }
 
-    currentSessionCode = code;
-    localStorage.setItem('sessionCode', code);
-    
-    updateSessionStatus(`Joined Session: ${code}`);
-    
-    // Listen for session changes
-    listenToSession(code);
+    // Check if session exists and is not expired
+    const sessionRef = ref(database, `sessions/${code}`);
+    onValue(sessionRef, (snapshot) => {
+        const sessionData = snapshot.val();
+
+        if (!sessionData) {
+            alert('Session not found. Please check the code.');
+            return;
+        }
+
+        const now = Date.now();
+        if (sessionData.expiresAt && now > sessionData.expiresAt) {
+            alert('This session has expired.');
+            // Delete expired session
+            remove(sessionRef);
+            return;
+        }
+
+        currentSessionCode = code;
+        localStorage.setItem('sessionCode', code);
+        localStorage.setItem('sessionCreatedAt', sessionData.createdAt);
+
+        updateSessionStatus(`Joined Session: ${code}`);
+        startSessionTimer(sessionData.createdAt);
+
+        // Listen for session changes
+        listenToSession(code);
+    }, { onlyOnce: true });
 }
 
 function checkExistingSession() {
     const savedCode = localStorage.getItem('sessionCode');
-    if (savedCode) {
-        currentSessionCode = savedCode;
-        updateSessionStatus(`Active Session: ${savedCode}`);
-        listenToSession(savedCode);
+    const savedCreatedAt = localStorage.getItem('sessionCreatedAt');
+
+    if (savedCode && savedCreatedAt) {
+        const createdAt = parseInt(savedCreatedAt);
+        const now = Date.now();
+
+        // Check if session is expired
+        if (now - createdAt > SESSION_DURATION) {
+            // Session expired, clear it
+            endSession();
+            return;
+        }
+
+        // Check if session still exists in Firebase
+        const sessionRef = ref(database, `sessions/${savedCode}`);
+        onValue(sessionRef, (snapshot) => {
+            const sessionData = snapshot.val();
+
+            if (!sessionData) {
+                // Session doesn't exist in DB, clear local storage
+                endSession();
+                return;
+            }
+
+            currentSessionCode = savedCode;
+            updateSessionStatus(`Active Session: ${savedCode}`);
+            startSessionTimer(createdAt);
+            listenToSession(savedCode);
+        }, { onlyOnce: true });
     }
 }
 
 function updateSessionStatus(message) {
     const statusDiv = document.getElementById('sessionStatus');
-    statusDiv.textContent = message;
+    const codeText = statusDiv.querySelector('.session-code-text');
+    const endBtn = document.getElementById('endSessionBtn');
+
+    if (codeText) {
+        codeText.textContent = message;
+    }
+
     statusDiv.classList.add('active');
+
+    // Show end session button
+    if (endBtn) {
+        endBtn.style.display = 'inline-flex';
+    }
 }
+
+function startSessionTimer(createdAt) {
+    // Clear any existing timer
+    if (sessionTimerInterval) {
+        clearInterval(sessionTimerInterval);
+    }
+
+    const updateTimer = () => {
+        const now = Date.now();
+        const elapsed = now - createdAt;
+        const remaining = SESSION_DURATION - elapsed;
+
+        if (remaining <= 0) {
+            endSession();
+            return;
+        }
+
+        // Format time as HH:MM:SS
+        const hours = Math.floor(remaining / (60 * 60 * 1000));
+        const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+        const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
+
+        const timeString = `${hours}h ${minutes}m ${seconds}s remaining`;
+        const timerElement = document.getElementById('sessionTimer');
+        if (timerElement) {
+            timerElement.textContent = timeString;
+        }
+    };
+
+    // Update immediately
+    updateTimer();
+
+    // Update every second
+    sessionTimerInterval = setInterval(updateTimer, 1000);
+}
+
+function scheduleSessionDeletion(code, duration) {
+    setTimeout(() => {
+        const sessionRef = ref(database, `sessions/${code}`);
+        remove(sessionRef);
+
+        // If this is the current session, end it
+        if (currentSessionCode === code) {
+            endSession();
+        }
+    }, duration);
+}
+
+function endSession() {
+    // Clear timer
+    if (sessionTimerInterval) {
+        clearInterval(sessionTimerInterval);
+        sessionTimerInterval = null;
+    }
+
+    // Delete session from Firebase if it exists
+    if (currentSessionCode) {
+        const sessionRef = ref(database, `sessions/${currentSessionCode}`);
+        remove(sessionRef);
+    }
+
+    // Clear local storage
+    localStorage.removeItem('sessionCode');
+    localStorage.removeItem('sessionCreatedAt');
+
+    // Clear current session
+    currentSessionCode = null;
+
+    // Update UI
+    const statusDiv = document.getElementById('sessionStatus');
+    const codeText = statusDiv.querySelector('.session-code-text');
+    const timerSpan = document.getElementById('sessionTimer');
+    const endBtn = document.getElementById('endSessionBtn');
+
+    if (codeText) {
+        codeText.textContent = 'Session ended';
+    }
+    if (timerSpan) {
+        timerSpan.textContent = '';
+    }
+    if (endBtn) {
+        endBtn.style.display = 'none';
+    }
+
+    statusDiv.classList.add('active');
+
+    // Hide status after 3 seconds
+    setTimeout(() => {
+        statusDiv.classList.remove('active');
+    }, 3000);
+}
+
+window.endSession = endSession;
 
 function listenToSession(code) {
     const sessionRef = ref(database, `sessions/${code}/currentSong`);

@@ -56,8 +56,14 @@
                     <span class="icon">🔗</span> Join
                 </button>
             </div>
+            <button class="btn btn-secondary" onclick="endSession()" style="display: none;" id="endSessionBtn">
+                <span class="icon">✖</span> End Session
+            </button>
         </div>
-        <div id="sessionStatus" class="session-status"></div>
+        <div id="sessionStatus" class="session-status">
+            <span class="session-code-text"></span>
+            <span id="sessionTimer" class="session-timer"></span>
+        </div>
     </header>
 
     <div class="app-layout">
