@@ -780,3 +780,48 @@ iframe.active {
 .fullscreen-btn:active {
     transform: translateY(0);
 }
+
+/* Version Badge */
+.version-badge {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    color: var(--white);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 100;
+    transition: var(--transition);
+    opacity: 0.6;
+}
+
+.version-badge:hover {
+    opacity: 1;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.version-label {
+    opacity: 0.7;
+    font-size: 0.75rem;
+}
+
+.version-number {
+    letter-spacing: 0.5px;
+}
+
+@media (max-width: 768px) {
+    .version-badge {
+        bottom: 16px;
+        right: 16px;
+        padding: 6px 12px;
+        font-size: 0.75rem;
+    }
+}

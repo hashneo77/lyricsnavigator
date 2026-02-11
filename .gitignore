@@ -14,7 +14,7 @@ Thumbs.db
 
 # Node modules (if you add any)
 node_modules/
-
+nul
 # Environment files
 .env
 .env.local

@@ -17,6 +17,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
+// App version
+const APP_VERSION = '1.0.0';
+
 // Global variables
 let allSongs = [];
 let currentSessionCode = null;
@@ -25,6 +28,12 @@ let favoriteSongs = new Set();
 
 // Load songs from Firebase on page load
 window.addEventListener('DOMContentLoaded', () => {
+    // Set version in UI
+    const versionElement = document.querySelector('.version-number');
+    if (versionElement) {
+        versionElement.textContent = APP_VERSION;
+    }
+
     loadFavoritesFromFirebase();
     loadSongsFromFirebase();
     checkExistingSession();
