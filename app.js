@@ -18,7 +18,7 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
 // App version
-const APP_VERSION = '1.0.5';
+const APP_VERSION = '1.0.6';
 
 // Global variables
 let allSongs = [];
@@ -73,9 +73,6 @@ window.addEventListener('DOMContentLoaded', () => {
         versionElement.textContent = APP_VERSION;
     }
 
-    // Initialize dark mode
-    initializeDarkMode();
-
     loadFavoritesFromFirebase();
     loadSongsFromFirebase();
     checkExistingSession();
@@ -91,60 +88,6 @@ window.addEventListener('DOMContentLoaded', () => {
         console.log('PWA install prompt available');
     });
 });
-
-// ===== Dark Mode =====
-
-function initializeDarkMode() {
-    // Check for saved preference, fallback to system preference
-    const savedTheme = localStorage.getItem('darkMode');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    if (savedTheme === 'enabled' || (savedTheme === null && prefersDark)) {
-        enableDarkMode();
-    }
-
-    // Listen for system preference changes
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-        if (localStorage.getItem('darkMode') === null) {
-            if (e.matches) {
-                enableDarkMode();
-            } else {
-                disableDarkMode();
-            }
-        }
-    });
-}
-
-function enableDarkMode() {
-    document.body.classList.add('dark-mode');
-    updateDarkModeIcon();
-}
-
-function disableDarkMode() {
-    document.body.classList.remove('dark-mode');
-    updateDarkModeIcon();
-}
-
-function updateDarkModeIcon() {
-    const toggle = document.getElementById('darkModeToggle');
-    if (toggle) {
-        const isDark = document.body.classList.contains('dark-mode');
-        toggle.textContent = isDark ? '☀️' : '🌙';
-        toggle.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
-    }
-}
-
-window.toggleDarkMode = function() {
-    const isDark = document.body.classList.contains('dark-mode');
-
-    if (isDark) {
-        disableDarkMode();
-        localStorage.setItem('darkMode', 'disabled');
-    } else {
-        enableDarkMode();
-        localStorage.setItem('darkMode', 'enabled');
-    }
-}
 
 // Load favorites from Firebase (shared across all users)
 function loadFavoritesFromFirebase() {
