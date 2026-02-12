@@ -18,7 +18,7 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
 // App version
-const APP_VERSION = '1.0.8';
+const APP_VERSION = '1.0.9';
 
 // Global variables
 let allSongs = [];
@@ -28,7 +28,8 @@ let favoriteSongs = new Set();
 let sessionExpiryTimeout = null;
 let searchDebounceTimer = null;
 let isSessionCreator = false;
-let participantCountListener = null;
+let unsubscribeSessionSong = null;
+let unsubscribeParticipantCount = null;
 const SESSION_DURATION = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 
 // Unique device ID for participant tracking
@@ -538,9 +539,13 @@ function removeParticipant(code) {
 }
 
 function listenToParticipantCount(code) {
-    // Clean up previous listener reference
-    participantCountListener = ref(database, `sessions/${code}/participants`);
-    onValue(participantCountListener, (snapshot) => {
+    // Detach any previous listener
+    if (unsubscribeParticipantCount) {
+        unsubscribeParticipantCount();
+    }
+
+    const participantsRef = ref(database, `sessions/${code}/participants`);
+    unsubscribeParticipantCount = onValue(participantsRef, (snapshot) => {
         const participants = snapshot.val();
         const count = participants ? Object.keys(participants).length : 0;
         const countEl = document.getElementById('participantCount');
@@ -550,11 +555,23 @@ function listenToParticipantCount(code) {
     });
 }
 
-function clearSessionLocal() {
+function detachSessionListeners() {
+    if (unsubscribeSessionSong) {
+        unsubscribeSessionSong();
+        unsubscribeSessionSong = null;
+    }
+    if (unsubscribeParticipantCount) {
+        unsubscribeParticipantCount();
+        unsubscribeParticipantCount = null;
+    }
     if (sessionExpiryTimeout) {
         clearTimeout(sessionExpiryTimeout);
         sessionExpiryTimeout = null;
     }
+}
+
+function clearSessionLocal() {
+    detachSessionListeners();
 
     // Remove this device from participants
     if (currentSessionCode) {
@@ -564,7 +581,6 @@ function clearSessionLocal() {
     localStorage.removeItem('sessionCode');
     localStorage.removeItem('sessionCreatedAt');
     localStorage.removeItem('sessionRole');
-    participantCountListener = null;
     currentSessionCode = null;
     isSessionCreator = false;
     showSessionInactive();
@@ -572,6 +588,8 @@ function clearSessionLocal() {
 
 // Creator ends session - deletes from Firebase for everyone
 window.endSession = function() {
+    detachSessionListeners();
+
     if (currentSessionCode) {
         const sessionRef = ref(database, `sessions/${currentSessionCode}`);
         remove(sessionRef);
@@ -579,11 +597,6 @@ window.endSession = function() {
     localStorage.removeItem('sessionCode');
     localStorage.removeItem('sessionCreatedAt');
     localStorage.removeItem('sessionRole');
-    if (sessionExpiryTimeout) {
-        clearTimeout(sessionExpiryTimeout);
-        sessionExpiryTimeout = null;
-    }
-    participantCountListener = null;
     currentSessionCode = null;
     isSessionCreator = false;
     showSessionInactive();
@@ -595,9 +608,14 @@ window.leaveSession = function() {
 }
 
 function listenToSession(code) {
+    // Detach any previous listener
+    if (unsubscribeSessionSong) {
+        unsubscribeSessionSong();
+    }
+
     const sessionRef = ref(database, `sessions/${code}/currentSong`);
-    
-    onValue(sessionRef, (snapshot) => {
+
+    unsubscribeSessionSong = onValue(sessionRef, (snapshot) => {
         const songData = snapshot.val();
         if (songData && songData.songId !== currentSongId) {
             // Load the song that was shared in the session
