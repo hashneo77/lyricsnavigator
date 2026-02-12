@@ -47,24 +47,23 @@
     <header>
         <div class="header-top">
             <h1>Song Library</h1>
-            <div class="session-controls">
-                <button class="btn btn-primary" onclick="createSession()">
+            <div class="session-controls" id="sessionControls">
+                <button class="btn btn-primary" onclick="createSession()" id="createSessionBtn">
                     <span class="icon">➕</span> Create
                 </button>
-                <div class="join-group">
+                <div class="join-group" id="joinGroup">
                     <input type="text" id="sessionInput" placeholder="Code" maxlength="4" pattern="\d*" inputmode="numeric">
                     <button class="btn btn-secondary" onclick="joinSession()">
                         <span class="icon">🔗</span> Join
                     </button>
                 </div>
-                <button class="btn btn-secondary" onclick="endSession()" style="display: none;" id="endSessionBtn">
-                    <span class="icon">👋</span> Leave
-                </button>
+                <div id="sessionBadge" class="session-badge" style="display: none;">
+                    <span class="session-badge-dot"></span>
+                    <span class="session-badge-code" id="sessionBadgeCode"></span>
+                    <button class="session-exit-btn" id="endSessionBtn" onclick="endSession()">End</button>
+                    <button class="session-exit-btn" id="leaveSessionBtn" onclick="leaveSession()">Leave</button>
+                </div>
             </div>
-        </div>
-        <div id="sessionStatus" class="session-status">
-            <span class="session-code-text"></span>
-            <span id="sessionTimer" class="session-timer"></span>
         </div>
     </header>
 

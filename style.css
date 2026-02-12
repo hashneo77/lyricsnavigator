@@ -119,42 +119,63 @@ header h1 {
     font-size: 1rem;
 }
 
-.session-status {
-    padding: 12px 20px;
+/* Session Badge - sleek inline pill */
+.session-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     background: rgba(255, 255, 255, 0.15);
     border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: var(--border-radius);
-    font-weight: 600;
-    display: none;
+    border-radius: 50px;
+    padding: 6px 8px 6px 14px;
     backdrop-filter: blur(10px);
-    animation: slideInDown 0.4s ease-out;
-    flex-direction: column;
-    gap: 6px;
+    animation: badgeFadeIn 0.3s ease-out;
 }
 
-.session-status.active {
-    display: flex;
+.session-badge-dot {
+    width: 8px;
+    height: 8px;
+    background: #4ade80;
+    border-radius: 50%;
+    animation: dotPulse 2s ease-in-out infinite;
 }
 
-.session-code-text {
-    font-size: 1rem;
+@keyframes dotPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
 }
 
-.session-timer {
-    font-size: 0.85rem;
-    opacity: 0.9;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.95);
+.session-badge-code {
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--white);
 }
 
-@keyframes slideInDown {
+.session-exit-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    border: none;
+    padding: 5px 14px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.session-exit-btn:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+@keyframes badgeFadeIn {
     from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: scale(0.9);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: scale(1);
     }
 }
 
@@ -766,23 +787,18 @@ iframe.active {
         font-size: 0.85rem;
     }
 
-    .session-status {
-        padding: 10px 14px;
-        font-size: 0.85rem;
-        gap: 5px;
+    .session-badge {
+        padding: 5px 6px 5px 12px;
+        gap: 8px;
     }
 
-    .session-code-text {
-        font-size: 0.85rem;
-    }
-
-    .session-timer {
-        font-size: 0.75rem;
-    }
-
-    #endSessionBtn {
-        padding: 8px 16px;
+    .session-badge-code {
         font-size: 0.8rem;
+    }
+
+    .session-exit-btn {
+        padding: 4px 12px;
+        font-size: 0.75rem;
     }
 
     /* Compact Sidebar for Mobile */
