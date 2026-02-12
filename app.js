@@ -1,6 +1,6 @@
 // Firebase configuration
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, set, onValue, push, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 // TODO: Replace with your Firebase config
 const firebaseConfig = {
@@ -18,7 +18,7 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
 // App version
-const APP_VERSION = '1.0.7';
+const APP_VERSION = '1.0.8';
 
 // Global variables
 let allSongs = [];
@@ -28,7 +28,18 @@ let favoriteSongs = new Set();
 let sessionExpiryTimeout = null;
 let searchDebounceTimer = null;
 let isSessionCreator = false;
+let participantCountListener = null;
 const SESSION_DURATION = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+
+// Unique device ID for participant tracking
+function getDeviceId() {
+    let id = localStorage.getItem('deviceId');
+    if (!id) {
+        id = Date.now().toString(36) + Math.random().toString(36).slice(2);
+        localStorage.setItem('deviceId', id);
+    }
+    return id;
+}
 
 // Register Service Worker for PWA
 if ('serviceWorker' in navigator) {
@@ -375,7 +386,9 @@ window.createSession = function() {
 
     showSessionActive(code);
     scheduleSessionExpiry(createdAt);
+    joinParticipants(code);
     listenToSession(code);
+    listenToParticipantCount(code);
 }
 
 window.joinSession = function() {
@@ -415,7 +428,9 @@ window.joinSession = function() {
 
         showSessionActive(code);
         scheduleSessionExpiry(sessionData.createdAt);
+        joinParticipants(code);
         listenToSession(code);
+        listenToParticipantCount(code);
     }, { onlyOnce: true });
 }
 
@@ -446,7 +461,9 @@ function checkExistingSession() {
             isSessionCreator = savedRole === 'creator';
             showSessionActive(savedCode);
             scheduleSessionExpiry(createdAt);
+            joinParticipants(savedCode);
             listenToSession(savedCode);
+            listenToParticipantCount(savedCode);
         }, { onlyOnce: true });
     }
 }
@@ -506,15 +523,48 @@ function scheduleSessionExpiry(createdAt) {
     }, remaining);
 }
 
+function joinParticipants(code) {
+    const deviceId = getDeviceId();
+    const participantRef = ref(database, `sessions/${code}/participants/${deviceId}`);
+    set(participantRef, { joinedAt: Date.now() });
+    // Auto-remove on disconnect (browser close, network loss)
+    onDisconnect(participantRef).remove();
+}
+
+function removeParticipant(code) {
+    const deviceId = getDeviceId();
+    const participantRef = ref(database, `sessions/${code}/participants/${deviceId}`);
+    remove(participantRef);
+}
+
+function listenToParticipantCount(code) {
+    // Clean up previous listener reference
+    participantCountListener = ref(database, `sessions/${code}/participants`);
+    onValue(participantCountListener, (snapshot) => {
+        const participants = snapshot.val();
+        const count = participants ? Object.keys(participants).length : 0;
+        const countEl = document.getElementById('participantCount');
+        if (countEl) {
+            countEl.textContent = count;
+        }
+    });
+}
+
 function clearSessionLocal() {
     if (sessionExpiryTimeout) {
         clearTimeout(sessionExpiryTimeout);
         sessionExpiryTimeout = null;
     }
 
+    // Remove this device from participants
+    if (currentSessionCode) {
+        removeParticipant(currentSessionCode);
+    }
+
     localStorage.removeItem('sessionCode');
     localStorage.removeItem('sessionCreatedAt');
     localStorage.removeItem('sessionRole');
+    participantCountListener = null;
     currentSessionCode = null;
     isSessionCreator = false;
     showSessionInactive();
@@ -526,7 +576,17 @@ window.endSession = function() {
         const sessionRef = ref(database, `sessions/${currentSessionCode}`);
         remove(sessionRef);
     }
-    clearSessionLocal();
+    localStorage.removeItem('sessionCode');
+    localStorage.removeItem('sessionCreatedAt');
+    localStorage.removeItem('sessionRole');
+    if (sessionExpiryTimeout) {
+        clearTimeout(sessionExpiryTimeout);
+        sessionExpiryTimeout = null;
+    }
+    participantCountListener = null;
+    currentSessionCode = null;
+    isSessionCreator = false;
+    showSessionInactive();
 }
 
 // Joiner leaves session - only disconnects locally

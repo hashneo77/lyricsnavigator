@@ -152,6 +152,20 @@ header h1 {
     color: var(--white);
 }
 
+.session-badge-participants {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0 4px;
+}
+
+.session-badge-participants svg {
+    opacity: 0.8;
+}
+
 .session-exit-btn {
     background: rgba(255, 255, 255, 0.2);
     color: var(--white);
