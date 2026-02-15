@@ -371,7 +371,7 @@ input[type="url"]:focus {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
     padding-right: 8px;
     margin-top: 12px;
 }
@@ -395,7 +395,7 @@ input[type="url"]:focus {
 }
 
 .song-item {
-    padding: 16px;
+    padding: 12px 14px;
     background: var(--white);
     border: 2px solid transparent;
     border-radius: var(--border-radius);
@@ -455,17 +455,17 @@ input[type="url"]:focus {
 
 .song-title {
     font-weight: 600;
-    font-size: 1.05rem;
-    margin-bottom: 6px;
-    letter-spacing: -0.2px;
-    line-height: 1.4;
+    font-size: 0.9rem;
+    margin-bottom: 3px;
+    letter-spacing: -0.1px;
+    line-height: 1.35;
     word-wrap: break-word;
     overflow-wrap: break-word;
     hyphens: auto;
 }
 
 .song-artist {
-    font-size: 0.875rem;
+    font-size: 0.78rem;
     opacity: 0.75;
     font-weight: 500;
     word-wrap: break-word;
