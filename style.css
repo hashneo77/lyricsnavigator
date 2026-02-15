@@ -923,7 +923,7 @@ iframe.active {
     /* Fullscreen Button */
     .fullscreen-btn {
         top: 12px;
-        right: 12px;
+        left: 12px;
         padding: 8px 14px;
         font-size: 0.8rem;
     }
@@ -979,7 +979,7 @@ iframe.active {
 .fullscreen-btn {
     position: absolute;
     top: 20px;
-    right: 20px;
+    left: 20px;
     z-index: 20;
     padding: 12px 20px;
     border: none;
