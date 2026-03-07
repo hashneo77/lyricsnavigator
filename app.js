@@ -367,23 +367,27 @@ window.toggleFullscreen = function () {
 
 // ===== Session Management =====
 
-window.createSession = function() {
+window.createSession = async function() {
     const code = Math.floor(1000 + Math.random() * 9000).toString();
     const createdAt = Date.now();
+
+    // Create session in Firebase first, then update UI
+    const sessionRef = ref(database, `sessions/${code}`);
+    try {
+        await set(sessionRef, {
+            createdAt: createdAt,
+            expiresAt: createdAt + SESSION_DURATION
+        });
+    } catch (error) {
+        alert('Failed to create session: ' + error.message);
+        return;
+    }
 
     currentSessionCode = code;
     isSessionCreator = true;
     localStorage.setItem('sessionCode', code);
     localStorage.setItem('sessionCreatedAt', createdAt);
     localStorage.setItem('sessionRole', 'creator');
-
-    // Create session in Firebase with expiry time
-    const sessionRef = ref(database, `sessions/${code}`);
-    set(sessionRef, {
-        createdAt: createdAt,
-        expiresAt: createdAt + SESSION_DURATION,
-        currentSong: null
-    });
 
     showSessionActive(code);
     scheduleSessionExpiry(createdAt);
@@ -432,6 +436,8 @@ window.joinSession = function() {
         joinParticipants(code);
         listenToSession(code);
         listenToParticipantCount(code);
+    }, (error) => {
+        alert('Error joining session: ' + error.message);
     }, { onlyOnce: true });
 }
 
