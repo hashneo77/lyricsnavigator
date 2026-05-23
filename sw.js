@@ -1,10 +1,10 @@
-const CACHE_NAME = 'song-library-v1.0.1';
+const CACHE_NAME = 'song-library-v1.0.2';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/app.js',
-  '/manifest.json'
+  './',
+  './index.html',
+  './style.css',
+  './app.js',
+  './manifest.json'
 ];
 
 // Install event - cache resources
@@ -72,7 +72,7 @@ self.addEventListener('fetch', (event) => {
         .catch(() => {
           // Network failed, fallback to cache
           return caches.match(event.request).then((cachedResponse) => {
-            return cachedResponse || caches.match('/index.html');
+            return cachedResponse || caches.match('./index.html');
           });
         })
     );

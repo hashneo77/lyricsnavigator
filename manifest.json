@@ -2,12 +2,12 @@
   "name": "Song Library - Lyrics Viewer",
   "short_name": "Song Library",
   "description": "Collaborative song library and lyrics viewer with real-time session sharing",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#667eea",
   "theme_color": "#667eea",
   "orientation": "any",
-  "scope": "/",
+  "scope": "./",
   "icons": [
     {
       "src": "/icons/icon-72x72.png",

@@ -25,6 +25,8 @@ let allSongs = [];
 let currentSessionCode = null;
 let currentSongId = null;
 let favoriteSongs = new Set();
+let recentSongs = [];
+const MAX_RECENTS = 8;
 let sessionExpiryTimeout = null;
 let searchDebounceTimer = null;
 let isSessionCreator = false;
@@ -45,7 +47,7 @@ function getDeviceId() {
 // Register Service Worker for PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('./sw.js')
             .then((registration) => {
                 console.log('ServiceWorker registration successful:', registration.scope);
 
@@ -78,6 +80,52 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+// Recents management
+function loadRecents() {
+    try {
+        recentSongs = JSON.parse(localStorage.getItem('recentSongs') || '[]');
+    } catch {
+        recentSongs = [];
+    }
+}
+
+function saveRecents() {
+    localStorage.setItem('recentSongs', JSON.stringify(recentSongs));
+}
+
+function addToRecents(song) {
+    recentSongs = recentSongs.filter(r => r.id !== song.id);
+    recentSongs.unshift(song);
+    if (recentSongs.length > MAX_RECENTS) recentSongs = recentSongs.slice(0, MAX_RECENTS);
+    saveRecents();
+    displayRecents();
+}
+
+function displayRecents() {
+    const section = document.getElementById('recentsSection');
+    const list = document.getElementById('recentsList');
+    if (!section || !list) return;
+
+    if (!recentSongs.length) {
+        section.style.display = 'none';
+        return;
+    }
+
+    section.style.display = 'block';
+    list.innerHTML = recentSongs.map(song => {
+        const isActive = song.id === currentSongId;
+        return `
+            <div class="song-item recent-item${isActive ? ' active' : ''}" onclick="loadSong('${song.url}', '${song.id}')" data-id="${song.id}">
+                <div class="song-content">
+                    <div>
+                        <div class="song-title">${escapeHtml(song.title)}</div>
+                        <div class="song-artist">${escapeHtml(song.artist)}</div>
+                    </div>
+                </div>
+            </div>`;
+    }).join('');
+}
+
 // Load songs from Firebase on page load
 window.addEventListener('DOMContentLoaded', () => {
     // Set version in UI
@@ -86,6 +134,8 @@ window.addEventListener('DOMContentLoaded', () => {
         versionElement.textContent = APP_VERSION;
     }
 
+    loadRecents();
+    displayRecents();
     loadFavoritesFromFirebase();
     loadSongsFromFirebase();
     checkExistingSession();
@@ -262,19 +312,23 @@ function fuzzyMatch(text, word) {
 window.loadSong = function(url, songId) {
     const iframe = document.getElementById('songFrame');
     const placeholder = document.getElementById('placeholder');
-    
+
     iframe.src = url;
     iframe.classList.add('active');
     placeholder.classList.add('hidden');
-    
-    // Update active state
+
+    // Update active state in main list
     document.querySelectorAll('.song-item').forEach(item => {
         item.classList.remove('active');
     });
     document.querySelector(`[data-id="${songId}"]`)?.classList.add('active');
-    
+
     currentSongId = songId;
-    
+
+    // Track in recents
+    const song = allSongs.find(s => s.id === songId);
+    if (song) addToRecents({ id: song.id, title: song.title, artist: song.artist, url: song.url });
+
     // Sync with session if active
     if (currentSessionCode) {
         syncSongToSession(url, songId);
@@ -301,9 +355,13 @@ function performSearch() {
         .trim();
 
     if (!searchTerm) {
+        displayRecents();
         displaySongs(allSongs);
         return;
     }
+
+    const recentsSection = document.getElementById('recentsSection');
+    if (recentsSection) recentsSection.style.display = 'none';
 
     const searchWords = searchTerm.split(/\s+/);
 

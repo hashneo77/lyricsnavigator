@@ -365,6 +365,44 @@ input[type="url"]:focus {
     transform: translateY(-1px);
 }
 
+/* Recents Section */
+.recents-section {
+    margin-top: 12px;
+    margin-bottom: 4px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.recents-header {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 4px 8px;
+    color: var(--text-light);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+}
+
+#recentsList {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.recent-item {
+    padding: 8px 12px;
+}
+
+.recent-item .song-title {
+    font-size: 0.85rem;
+}
+
+.recent-item .song-artist {
+    font-size: 0.73rem;
+}
+
 /* Song List */
 .song-list {
     flex: 1;

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Collaborative song library and lyrics viewer with real-time session sharing">
-    <title>Song Library - Lyrics Viewer</title>
+    <title>Lyrics Viewer</title>
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -16,7 +16,7 @@
     <!-- iOS Specific Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Song Library">
+    <meta name="apple-mobile-web-app-title" content="Lyrics Viewer">
 
     <!-- iOS Icons -->
     <link rel="apple-touch-icon" href="/icons/icon-152x152.png">
@@ -46,7 +46,6 @@
     <!-- Header -->
     <header>
         <div class="header-top">
-            <h1>Song Library</h1>
             <div class="session-controls" id="sessionControls">
                 <button class="btn btn-primary" onclick="createSession()" id="createSessionBtn">
                     <span class="icon">➕</span> Create
@@ -76,6 +75,14 @@
         <aside class="sidebar">
             <div class="search-container">
                 <input type="text" id="searchInput" placeholder="🔍 Search songs..." onkeyup="searchSongs()">
+            </div>
+
+            <div id="recentsSection" class="recents-section" style="display:none;">
+                <div class="recents-header">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Recently Opened
+                </div>
+                <div id="recentsList"></div>
             </div>
 
             <div class="song-list" id="songList">
