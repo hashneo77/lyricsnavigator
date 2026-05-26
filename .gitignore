@@ -12,7 +12,10 @@
 .DS_Store
 Thumbs.db
 
-# Node modules (if you add any)
+# Build output
+dist/
+
+# Node modules
 node_modules/
 nul
 

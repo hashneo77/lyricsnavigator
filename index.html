@@ -1,148 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="description" content="Collaborative song library and lyrics viewer with real-time session sharing">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Lyrics Viewer</title>
-
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
-
-    <!-- Theme Color -->
-    <meta name="theme-color" content="#667eea">
-    <meta name="msapplication-TileColor" content="#667eea">
-
-    <!-- iOS Specific Meta Tags -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Lyrics Viewer">
-
-    <!-- iOS Icons -->
-    <link rel="apple-touch-icon" href="/icons/icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="72x72" href="/icons/icon-72x72.png">
-    <link rel="apple-touch-icon" sizes="96x96" href="/icons/icon-96x96.png">
-    <link rel="apple-touch-icon" sizes="128x128" href="/icons/icon-128x128.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png">
-    <link rel="apple-touch-icon" sizes="384x384" href="/icons/icon-384x384.png">
-    <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512x512.png">
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-72x72.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-72x72.png">
-
-    <link rel="stylesheet" href="style.css">
-    <style>
-        html {
-            scroll-behavior: smooth;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <!-- Header -->
-    <header>
-        <div class="header-top">
-            <div class="session-controls" id="sessionControls">
-                <button class="btn btn-primary" onclick="createSession()" id="createSessionBtn">
-                    <span class="icon">➕</span> Create
-                </button>
-                <div class="join-group" id="joinGroup">
-                    <input type="text" id="sessionInput" placeholder="Code" maxlength="4" pattern="\d*" inputmode="numeric">
-                    <button class="btn btn-secondary" onclick="joinSession()">
-                        <span class="icon">🔗</span> Join
-                    </button>
-                </div>
-                <div id="sessionBadge" class="session-badge" style="display: none;">
-                    <span class="session-badge-dot"></span>
-                    <span class="session-badge-code" id="sessionBadgeCode"></span>
-                    <span class="session-badge-participants">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                        <span id="participantCount">0</span>
-                    </span>
-                    <button class="session-exit-btn" id="endSessionBtn" onclick="endSession()">End</button>
-                    <button class="session-exit-btn" id="leaveSessionBtn" onclick="leaveSession()">Leave</button>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <div class="app-layout">
-        <!-- Sidebar with Song List -->
-        <aside class="sidebar">
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="🔍 Search songs..." onkeyup="searchSongs()">
-            </div>
-
-            <div id="recentsSection" class="recents-section" style="display:none;">
-                <div class="recents-header">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Recently Opened
-                </div>
-                <div id="recentsList"></div>
-            </div>
-
-            <div class="song-list" id="songList">
-                <div class="loading">Loading songs...</div>
-            </div>
-
-            <!-- Admin Add Song Button -->
-            <button class="btn btn-add" onclick="showAddSongModal()">+ Add New Song</button>
-        </aside>
-
-        <!-- Main Content - Iframe Viewer -->
-        <main class="main-content">
-            <div class="iframe-container">
-                <button id="fullscreenBtn" class="fullscreen-btn" onclick="toggleFullscreen()">
-                    ⛶ Fullscreen
-                </button>
-                <div id="placeholder" class="placeholder">
-                    <div class="placeholder-content">
-                        <span class="placeholder-icon">🎼</span>
-                        <h2>Select a song to begin</h2>
-                        <p>Choose from the library or search for your favorite</p>
-                    </div>
-                </div>
-                <iframe id="songFrame"></iframe>
-            </div>
-        </main>
-    </div>
-
-    <!-- Version Badge -->
-    <div class="version-badge" id="versionBadge">
-        <span class="version-label">v</span>
-        <span class="version-number">1.0.0</span>
-    </div>
-</div>
-
-<!-- Add Song Modal -->
-<div id="addSongModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeAddSongModal()">&times;</span>
-        <h2>Add New Song</h2>
-        <form onsubmit="addNewSong(event)">
-            <div class="form-group">
-                <label for="songTitle">Song Title:</label>
-                <input type="text" id="songTitle" required>
-            </div>
-            <div class="form-group">
-                <label for="songArtist">Artist:</label>
-                <input type="text" id="songArtist" required>
-            </div>
-            <div class="form-group">
-                <label for="songUrl">Lyrics URL:</label>
-                <input type="url" id="songUrl" required placeholder="https://...">
-            </div>
-            <button type="submit" class="btn btn-primary">Add Song</button>
-        </form>
-    </div>
-</div>
-
-<!-- Firebase SDK -->
-<script type="module" src="app.js"></script>
-
-</body>
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#667eea" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Lyrics Viewer" />
+    <link rel="apple-touch-icon" href="/icons/icon-152x152.png" />
+    <link rel="icon" type="image/png" href="/icons/icon-72x72.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
